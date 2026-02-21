@@ -1,0 +1,122 @@
+-- 1. Khởi tạo ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "ChiiHauuHorizontal"
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+screenGui.ResetOnSpawn = false
+
+-- 2. Main Frame Dạng Ngang (Nới rộng lên 720 để đủ chỗ nút mới)
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 720, 0, 100) 
+mainFrame.Position = UDim2.new(0.5, -360, 0, 50)
+mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
+Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 15)
+
+local stroke = Instance.new("UIStroke")
+stroke.Color = Color3.fromRGB(0, 170, 255)
+stroke.Thickness = 2
+stroke.Parent = mainFrame
+
+-- 3. Tiêu đề
+local title = Instance.new("TextLabel")
+title.Text = "CHII HAUU HUB | LV: " .. game.Players.LocalPlayer.Data.Level.Value
+title.Size = UDim2.new(1, 0, 0, 30)
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.BackgroundTransparency = 1
+title.Font = Enum.Font.GothamBold
+title.Parent = mainFrame
+
+-- 4. Layout
+local container = Instance.new("Frame")
+container.Size = UDim2.new(1, 0, 0, 60)
+container.Position = UDim2.new(0, 0, 0, 35)
+container.BackgroundTransparency = 1
+container.Parent = mainFrame
+local layout = Instance.new("UIListLayout")
+layout.FillDirection = Enum.FillDirection.Horizontal
+layout.Padding = UDim.new(0, 10)
+layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+layout.VerticalAlignment = Enum.VerticalAlignment.Center
+layout.Parent = container
+
+-- 5. Hàm tạo nút
+local function AddButton(text)
+    local btn = Instance.new("TextButton")
+    btn.Text = text
+    btn.Size = UDim2.new(0, 105, 0, 45)
+    btn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 11
+    btn.Parent = container
+    Instance.new("UICorner", btn)
+    return btn
+end
+
+local farmBtn = AddButton("Auto Farm")
+local fastBtn = AddButton("Fast Attack")
+local bringBtn = AddButton("Gom Quái")
+local airBtn = AddButton("Air Farm")
+local questBtn = AddButton("Auto Quest")
+local fruitBtn = AddButton("Fruit ESP") -- Nút mới
+
+-- BIẾN TRẠNG THÁI
+local _G = {
+    Farm = false, Fast = false, Bring = false, Air = false, Quest = false, ESP = false
+}
+
+-- 6. LOGIC ĐỊNH VỊ TRÁI (Fruit ESP)
+spawn(function()
+    while task.wait(1) do -- Quét mỗi giây 1 lần để tránh lag
+        -- Xóa các ESP cũ
+        for _, v in pairs(game.CoreGui:GetChildren()) do
+            if v.Name == "FruitTrack" then v:Destroy() end
+        end
+        
+        -- Nếu bật ESP
+        if _G.ESP then
+            for _, v in pairs(workspace:GetChildren()) do
+                -- Tìm các vật phẩm chứa chữ "Fruit"
+                if v.Name:find("Fruit") or (v:IsA("Tool") and v:FindFirstChild("Handle")) then
+                    local bill = Instance.new("BillboardGui", game.CoreGui)
+                    bill.Name = "FruitTrack"
+                    bill.AlwaysOnTop = true
+                    bill.Size = UDim2.new(0, 100, 0, 50)
+                    bill.Adornee = v:IsA("Tool") and v.Handle or v
+                    
+                    local txt = Instance.new("TextLabel", bill)
+                    txt.Size = UDim2.new(1, 0, 1, 0)
+                    txt.BackgroundTransparency = 1
+                    txt.Text = "🍎 " .. v.Name
+                    txt.TextColor3 = Color3.fromRGB(255, 0, 0)
+                    txt.Font = Enum.Font.GothamBold
+                    txt.TextSize = 14
+                end
+            end
+        end
+    end
+end)
+
+-- 7. CÁC LOGIC CŨ (Gom quái, Fast Attack, Di chuyển...)
+spawn(function()
+    while task.wait() do
+        if _G.Bring and _G.Farm then
+            pcall(function()
+                local myPos = player.Character.HumanoidRootPart.Position
+                for _, v in pairs(workspace.Enemies:GetChildren()) do
+                    if v:FindFirstChild("HumanoidRootPart") then
+                        v.HumanoidRootPart.CFrame = player.Character.HumanoidRootPart.CFrame
+                        v.HumanoidRootPart.CanCollide = false
+                    end
+                end
+            end)
+        end
+    end
+end)
+
+spawn(function()
+    game:GetService("RunService").Stepped:Connect(function()
+        if _G.Fast and _G.Farm then
+            pcall(function()
+            
